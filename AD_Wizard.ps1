@@ -9,26 +9,22 @@ $form.StartPosition = 'CenterScreen'
 $form.FormBorderStyle = 'FixedDialog'
 $form.MaximizeBox = $false
 
-# --- Section: Personal Information ---
 $grpInfo = New-Object Windows.Forms.GroupBox
 $grpInfo.Text = "Personal Information"
 $grpInfo.Location = '15,10'
 $grpInfo.Size = '410,180'
 $form.Controls.Add($grpInfo)
 
-# --- Last Name ---
 $lblNom = New-Object Windows.Forms.Label -Property @{Text="Last Name :";Location='20,30';Size='100,20'}
 $grpInfo.Controls.Add($lblNom)
 $txtNom = New-Object Windows.Forms.TextBox -Property @{Location='130,28';Width=250}
 $grpInfo.Controls.Add($txtNom)
 
-# --- First Name ---
 $lblPrenom = New-Object Windows.Forms.Label -Property @{Text="First Name :";Location='20,65';Size='100,20'}
 $grpInfo.Controls.Add($lblPrenom)
 $txtPrenom = New-Object Windows.Forms.TextBox -Property @{Location='130,63';Width=250}
 $grpInfo.Controls.Add($txtPrenom)
 
-# --- Group ---
 $lblGrp = New-Object Windows.Forms.Label -Property @{Text="Group :";Location='20,100';Size='100,20'}
 $grpInfo.Controls.Add($lblGrp)
 $cbGrp = New-Object Windows.Forms.ComboBox -Property @{Location='130,98';Width=250;DropDownStyle='DropDownList'}
@@ -37,7 +33,6 @@ $cbGrp.Items.Add("comptabilite") | Out-Null
 $cbGrp.Items.Add("RH") | Out-Null
 $grpInfo.Controls.Add($cbGrp)
 
-# --- Date of Birth ---
 $lblDate = New-Object Windows.Forms.Label -Property @{Text="Date of Birth :";Location='20,135';Size='100,20'}
 $grpInfo.Controls.Add($lblDate)
 
@@ -59,7 +54,6 @@ $cbAnnee = New-Object Windows.Forms.ComboBox -Property @{Location='280,133';Widt
 1980..2005 | ForEach-Object { $cbAnnee.Items.Add($_) | Out-Null }
 $grpInfo.Controls.Add($cbAnnee)
 
-# --- Generate Button ---
 $btnGenerate = New-Object Windows.Forms.Button -Property @{
     Text="Generate User Name && Password"
     Location='80,210'
@@ -69,14 +63,12 @@ $btnGenerate = New-Object Windows.Forms.Button -Property @{
 }
 $form.Controls.Add($btnGenerate)
 
-# --- Section: Result ---
 $grpResult = New-Object Windows.Forms.GroupBox
 $grpResult.Text = "Result"
 $grpResult.Location = '15,260'
 $grpResult.Size = '410,150'
 $form.Controls.Add($grpResult)
 
-# --- User Name ---
 $lblUserNameTitle = New-Object Windows.Forms.Label -Property @{
     Text="User Name :"
     Location='20,30'
@@ -96,7 +88,6 @@ $lblUserName = New-Object Windows.Forms.Label -Property @{
 }
 $grpResult.Controls.Add($lblUserName)
 
-# --- Password ---
 $lblPasswordTitle = New-Object Windows.Forms.Label -Property @{
     Text="Password :"
     Location='20,70'
@@ -116,7 +107,6 @@ $lblPassword = New-Object Windows.Forms.Label -Property @{
 }
 $grpResult.Controls.Add($lblPassword)
 
-# --- Status Message ---
 $lblStatus = New-Object Windows.Forms.Label -Property @{
     Text=""
     ForeColor='Green'
@@ -127,7 +117,6 @@ $lblStatus = New-Object Windows.Forms.Label -Property @{
 }
 $grpResult.Controls.Add($lblStatus)
 
-# --- Save and Cancel Buttons ---
 $btnSave = New-Object Windows.Forms.Button -Property @{
     Text="Save"
     Location='100,430'
@@ -146,13 +135,11 @@ $btnCancel = New-Object Windows.Forms.Button -Property @{
 }
 $form.Controls.Add($btnCancel)
 
-# --- Generate Button Event ---
 $btnGenerate.Add_Click({
     $nom = $txtNom.Text.Trim()
     $prenom = $txtPrenom.Text.Trim()
     $annee = $cbAnnee.SelectedItem
     
-    # Validation
     if ([string]::IsNullOrWhiteSpace($nom) -or [string]::IsNullOrWhiteSpace($prenom)) {
         [Windows.Forms.MessageBox]::Show("Last name and first name are required!", "Error", 'OK', 'Error')
         return
@@ -163,26 +150,17 @@ $btnGenerate.Add_Click({
         return
     }
     
-    # Generate User Name: first letter of first name + last name
-    # Remove accents for username
-    $prenomClean = $prenom
-    $prenomClean = $prenomClean -replace '[àâäã]','a' -replace '[éèêë]','e' -replace '[îï]','i' -replace '[ôö]','o' -replace '[ùûü]','u' -replace '[ç]','c'
-    $nomClean = $nom
-    $nomClean = $nomClean -replace '[àâäã]','a' -replace '[éèêë]','e' -replace '[îï]','i' -replace '[ôö]','o' -replace '[ùûü]','u' -replace '[ç]','c'
+    $prenomClean = $prenom -replace '[àâäã]','a' -replace '[éèêë]','e' -replace '[îï]','i' -replace '[ôö]','o' -replace '[ùûü]','u' -replace '[ç]','c'
+    $nomClean = $nom -replace '[àâäã]','a' -replace '[éèêë]','e' -replace '[îï]','i' -replace '[ôö]','o' -replace '[ùûü]','u' -replace '[ç]','c'
     
-    $username = ($prenomClean.Substring(0,1).ToLower() + $nomClean.ToLower())
-    $username = $username -replace '[^a-z0-9]', ''
-    
-    # Generate Password: lastname + year + ?
+    $username = ($prenomClean.Substring(0,1).ToLower() + $nomClean.ToLower()) -replace '[^a-z0-9]', ''
     $password = ($nomClean.ToLower() + $annee + "?")
     
-    # Display
     $lblUserName.Text = $username
     $lblPassword.Text = $password
     $lblStatus.Text = ""
 })
 
-# --- Save Button Event ---
 $btnSave.Add_Click({
     $nom = $txtNom.Text.Trim()
     $prenom = $txtPrenom.Text.Trim()
@@ -193,7 +171,6 @@ $btnSave.Add_Click({
     $username = $lblUserName.Text
     $password = $lblPassword.Text
     
-    # Complete validation
     if ([string]::IsNullOrWhiteSpace($nom) -or [string]::IsNullOrWhiteSpace($prenom)) {
         [Windows.Forms.MessageBox]::Show("Last name and first name are required!", "Error", 'OK', 'Error')
         return
@@ -214,11 +191,9 @@ $btnSave.Add_Click({
         return
     }
     
-    # Check if user already exists
     try {
         $userExists = Get-ADUser -Filter "SamAccountName -eq '$username'" -ErrorAction SilentlyContinue
         if ($userExists) {
-            # Generate a new unique username
             $counter = 2
             $originalUsername = $username -replace '\d+$', ''
             $newUsername = "$originalUsername$counter"
@@ -231,10 +206,9 @@ $btnSave.Add_Click({
             $username = $newUsername
             $lblUserName.Text = $username
             
-            # Ask user if they want to continue with the new username
-            $result = [Windows.Forms.MessageBox]::Show("User already exists! Use username '$username' instead?", "Username Conflict", 'YesNo', 'Question')
+            $dialogResult = [Windows.Forms.MessageBox]::Show("User already exists! Use username '$username' instead?", "Username Conflict", 'YesNo', 'Question')
             
-            if ($result -eq 'No') {
+            if ($dialogResult -eq 'No') {
                 return
             }
         }
@@ -248,10 +222,8 @@ $btnSave.Add_Click({
     $dateNaissance = "$annee-$mois-$jour"
     
     try {
-        # Use the Structure OU path
         $ouPath = "OU=Structure,DC=script,DC=local"
         
-        # Create AD user
         $newUserParams = @{
             Name = "$prenom $nom"
             GivenName = $prenom
@@ -266,20 +238,16 @@ $btnSave.Add_Click({
         }
         
         New-ADUser @newUserParams -ErrorAction Stop
-        
-        # Wait a moment for AD replication
         Start-Sleep -Seconds 2
         
-        # Add to group
         try {
             Add-ADGroupMember -Identity $groupName -Members $username -ErrorAction Stop
             $groupStatus = "and added to group $groupName"
         } catch {
-            $groupStatus = "but failed to add to group: $($_.Exception.Message)"
-            Write-Host "Warning: $groupStatus" -ForegroundColor Yellow
+            $groupStatus = "but failed to add to group"
+            Write-Host "Warning: Failed to add to group" -ForegroundColor Yellow
         }
         
-        # RESET: Reset all fields to initial state
         $txtNom.Clear()
         $txtPrenom.Clear()
         $cbJour.SelectedIndex = -1
@@ -297,12 +265,10 @@ $btnSave.Add_Click({
     catch {
         $lblStatus.ForeColor = 'Red'
         $lblStatus.Text = "Error during creation"
-        [Windows.Forms.MessageBox]::Show("Error: $($_.Exception.Message)", "Error", 'OK', 'Error')
+        [Windows.Forms.MessageBox]::Show("Error: " + $_.Exception.Message, "Error", 'OK', 'Error')
     }
 })
 
-# --- Cancel Button Event ---
 $btnCancel.Add_Click({ $form.Close() })
 
-# Display the form
 $form.ShowDialog()
