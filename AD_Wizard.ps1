@@ -3,33 +3,33 @@ Add-Type -AssemblyName System.Drawing
 Import-Module ActiveDirectory
 
 $form = New-Object Windows.Forms.Form
-$form.Text = "nouvel employe"
+$form.Text = "New Employee"
 $form.Size = '450,580'
 $form.StartPosition = 'CenterScreen'
 $form.FormBorderStyle = 'FixedDialog'
 $form.MaximizeBox = $false
 
-# --- Section: Information personnelle ---
+# --- Section: Personal Information ---
 $grpInfo = New-Object Windows.Forms.GroupBox
-$grpInfo.Text = "Information personnelle"
+$grpInfo.Text = "Personal Information"
 $grpInfo.Location = '15,10'
 $grpInfo.Size = '410,180'
 $form.Controls.Add($grpInfo)
 
-# --- Nom ---
-$lblNom = New-Object Windows.Forms.Label -Property @{Text="Nom :";Location='20,30';Size='100,20'}
+# --- Last Name ---
+$lblNom = New-Object Windows.Forms.Label -Property @{Text="Last Name :";Location='20,30';Size='100,20'}
 $grpInfo.Controls.Add($lblNom)
 $txtNom = New-Object Windows.Forms.TextBox -Property @{Location='130,28';Width=250}
 $grpInfo.Controls.Add($txtNom)
 
-# --- Prenom ---
-$lblPrenom = New-Object Windows.Forms.Label -Property @{Text="Prénom :";Location='20,65';Size='100,20'}
+# --- First Name ---
+$lblPrenom = New-Object Windows.Forms.Label -Property @{Text="First Name :";Location='20,65';Size='100,20'}
 $grpInfo.Controls.Add($lblPrenom)
 $txtPrenom = New-Object Windows.Forms.TextBox -Property @{Location='130,63';Width=250}
 $grpInfo.Controls.Add($txtPrenom)
 
-# --- Groupe ---
-$lblGrp = New-Object Windows.Forms.Label -Property @{Text="Groupe :";Location='20,100';Size='100,20'}
+# --- Group ---
+$lblGrp = New-Object Windows.Forms.Label -Property @{Text="Group :";Location='20,100';Size='100,20'}
 $grpInfo.Controls.Add($lblGrp)
 $cbGrp = New-Object Windows.Forms.ComboBox -Property @{Location='130,98';Width=250;DropDownStyle='DropDownList'}
 $cbGrp.Items.Add("Informatique") | Out-Null
@@ -37,8 +37,8 @@ $cbGrp.Items.Add("comptabilite") | Out-Null
 $cbGrp.Items.Add("RH") | Out-Null
 $grpInfo.Controls.Add($cbGrp)
 
-# --- Date de naissance ---
-$lblDate = New-Object Windows.Forms.Label -Property @{Text="Date de naissance :";Location='20,135';Size='100,20'}
+# --- Date of Birth ---
+$lblDate = New-Object Windows.Forms.Label -Property @{Text="Date of Birth :";Location='20,135';Size='100,20'}
 $grpInfo.Controls.Add($lblDate)
 
 $cbJour = New-Object Windows.Forms.ComboBox -Property @{Location='130,133';Width=60;DropDownStyle='DropDownList'}
@@ -59,9 +59,9 @@ $cbAnnee = New-Object Windows.Forms.ComboBox -Property @{Location='280,133';Widt
 1980..2005 | ForEach-Object { $cbAnnee.Items.Add($_) | Out-Null }
 $grpInfo.Controls.Add($cbAnnee)
 
-# --- Bouton Générer ---
+# --- Generate Button ---
 $btnGenerate = New-Object Windows.Forms.Button -Property @{
-    Text="Generer le User Name && Password"
+    Text="Generate User Name && Password"
     Location='80,210'
     Width=280
     Height=35
@@ -69,9 +69,9 @@ $btnGenerate = New-Object Windows.Forms.Button -Property @{
 }
 $form.Controls.Add($btnGenerate)
 
-# --- Section: Résultat ---
+# --- Section: Result ---
 $grpResult = New-Object Windows.Forms.GroupBox
-$grpResult.Text = "Resultat"
+$grpResult.Text = "Result"
 $grpResult.Location = '15,260'
 $grpResult.Size = '410,150'
 $form.Controls.Add($grpResult)
@@ -116,7 +116,7 @@ $lblPassword = New-Object Windows.Forms.Label -Property @{
 }
 $grpResult.Controls.Add($lblPassword)
 
-# --- Message de statut ---
+# --- Status Message ---
 $lblStatus = New-Object Windows.Forms.Label -Property @{
     Text=""
     ForeColor='Green'
@@ -127,9 +127,9 @@ $lblStatus = New-Object Windows.Forms.Label -Property @{
 }
 $grpResult.Controls.Add($lblStatus)
 
-# --- Boutons Enregistrer et Annuler ---
+# --- Save and Cancel Buttons ---
 $btnSave = New-Object Windows.Forms.Button -Property @{
-    Text="Enregistrer"
+    Text="Save"
     Location='100,430'
     Width=120
     Height=35
@@ -138,7 +138,7 @@ $btnSave = New-Object Windows.Forms.Button -Property @{
 $form.Controls.Add($btnSave)
 
 $btnCancel = New-Object Windows.Forms.Button -Property @{
-    Text="Annuler"
+    Text="Cancel"
     Location='230,430'
     Width=120
     Height=35
@@ -146,7 +146,7 @@ $btnCancel = New-Object Windows.Forms.Button -Property @{
 }
 $form.Controls.Add($btnCancel)
 
-# --- Événement du bouton Générer ---
+# --- Generate Button Event ---
 $btnGenerate.Add_Click({
     $nom = $txtNom.Text.Trim()
     $prenom = $txtPrenom.Text.Trim()
@@ -154,17 +154,17 @@ $btnGenerate.Add_Click({
     
     # Validation
     if ([string]::IsNullOrWhiteSpace($nom) -or [string]::IsNullOrWhiteSpace($prenom)) {
-        [Windows.Forms.MessageBox]::Show("Nom et prénom requis!", "Erreur", 'OK', 'Error')
+        [Windows.Forms.MessageBox]::Show("Last name and first name are required!", "Error", 'OK', 'Error')
         return
     }
     
     if ($null -eq $annee) {
-        [Windows.Forms.MessageBox]::Show("Année de naissance requise!", "Erreur", 'OK', 'Error')
+        [Windows.Forms.MessageBox]::Show("Year of birth is required!", "Error", 'OK', 'Error')
         return
     }
     
-    # Génération du User Name: première lettre du prénom + nom
-    # Enlever les accents pour le username
+    # Generate User Name: first letter of first name + last name
+    # Remove accents for username
     $prenomClean = $prenom
     $prenomClean = $prenomClean -replace '[àâäã]','a' -replace '[éèêë]','e' -replace '[îï]','i' -replace '[ôö]','o' -replace '[ùûü]','u' -replace '[ç]','c'
     $nomClean = $nom
@@ -173,16 +173,16 @@ $btnGenerate.Add_Click({
     $username = ($prenomClean.Substring(0,1).ToLower() + $nomClean.ToLower())
     $username = $username -replace '[^a-z0-9]', ''
     
-    # Génération du Password: nom + année + ?
+    # Generate Password: lastname + year + ?
     $password = ($nomClean.ToLower() + $annee + "?")
     
-    # Affichage
+    # Display
     $lblUserName.Text = $username
     $lblPassword.Text = $password
     $lblStatus.Text = ""
 })
 
-# --- Événement du bouton Enregistrer ---
+# --- Save Button Event ---
 $btnSave.Add_Click({
     $nom = $txtNom.Text.Trim()
     $prenom = $txtPrenom.Text.Trim()
@@ -193,28 +193,28 @@ $btnSave.Add_Click({
     $username = $lblUserName.Text
     $password = $lblPassword.Text
     
-    # Validation complète
+    # Complete validation
     if ([string]::IsNullOrWhiteSpace($nom) -or [string]::IsNullOrWhiteSpace($prenom)) {
-        [Windows.Forms.MessageBox]::Show("Nom et prénom requis!", "Erreur", 'OK', 'Error')
+        [Windows.Forms.MessageBox]::Show("Last name and first name are required!", "Error", 'OK', 'Error')
         return
     }
     
     if ($null -eq $groupName) {
-        [Windows.Forms.MessageBox]::Show("Groupe requis!", "Erreur", 'OK', 'Error')
+        [Windows.Forms.MessageBox]::Show("Group is required!", "Error", 'OK', 'Error')
         return
     }
     
     if ($null -eq $jour -or $null -eq $mois -or $null -eq $annee) {
-        [Windows.Forms.MessageBox]::Show("Date de naissance complète requise!", "Erreur", 'OK', 'Error')
+        [Windows.Forms.MessageBox]::Show("Complete date of birth is required!", "Error", 'OK', 'Error')
         return
     }
     
     if ([string]::IsNullOrWhiteSpace($username) -or [string]::IsNullOrWhiteSpace($password)) {
-        [Windows.Forms.MessageBox]::Show("Veuillez d'abord générer le User Name et Password!", "Erreur", 'OK', 'Error')
+        [Windows.Forms.MessageBox]::Show("Please generate the User Name and Password first!", "Error", 'OK', 'Error')
         return
     }
     
-    # Vérifier si l'utilisateur existe déjà
+    # Check if user already exists
     try {
         $userExists = Get-ADUser -Filter "SamAccountName -eq '$username'" -ErrorAction SilentlyContinue
         if ($userExists) {
@@ -228,7 +228,7 @@ $btnSave.Add_Click({
         }
     } catch {
         $lblStatus.ForeColor = 'Red'
-        $lblStatus.Text = "Erreur verification utilisateur"
+        $lblStatus.Text = "Error verifying user"
         return
     }
     
@@ -236,10 +236,11 @@ $btnSave.Add_Click({
     $dateNaissance = "$annee-$mois-$jour"
     
     try {
-        # Obtenir le domaine par défaut
-        $ouPath = "CN=Users," + (Get-ADDomain).DistinguishedName
+        # Get the Infrastructure OU path
+        $domainDN = (Get-ADDomain).DistinguishedName
+        $ouPath = "OU=Infrastructure,$domainDN"
         
-        # Création utilisateur AD
+        # Create AD user
         $newUserParams = @{
             Name = "$prenom $nom"
             GivenName = $prenom
@@ -249,22 +250,22 @@ $btnSave.Add_Click({
             AccountPassword = $securePass
             Enabled = $true
             Path = $ouPath
-            Description = "Date de naissance: $dateNaissance - Groupe: $groupName"
+            Description = "Date of birth: $dateNaissance - Group: $groupName"
             ChangePasswordAtLogon = $false
         }
         
         New-ADUser @newUserParams -ErrorAction Stop
         Start-Sleep -Seconds 1
         
-        # Ajout au groupe
+        # Add to group (groups are in the Infrastructure OU)
         try {
             Add-ADGroupMember -Identity $groupName -Members $username -ErrorAction Stop
         } catch {
-            # Si le groupe n'existe pas, on continue quand même
-            Write-Host "Avertissement: Groupe $groupName non trouve" -ForegroundColor Yellow
+            # If group doesn't exist, continue anyway
+            Write-Host "Warning: Group $groupName not found" -ForegroundColor Yellow
         }
         
-        # RESET: Remettre tous les champs à leur état initial
+        # RESET: Reset all fields to initial state
         $txtNom.Clear()
         $txtPrenom.Clear()
         $cbJour.SelectedIndex = -1
@@ -275,19 +276,19 @@ $btnSave.Add_Click({
         $lblPassword.Text = ""
         
         $lblStatus.ForeColor = 'Green'
-        $lblStatus.Text = "Utilisateur créé avec succès!"
+        $lblStatus.Text = "User created successfully!"
         
-        [Windows.Forms.MessageBox]::Show("Utilisateur $username créé avec succès dans le groupe $groupName!", "Succès", 'OK', 'Information')
+        [Windows.Forms.MessageBox]::Show("User $username created successfully in group $groupName!", "Success", 'OK', 'Information')
     }
     catch {
         $lblStatus.ForeColor = 'Red'
-        $lblStatus.Text = "Erreur lors de la création"
-        [Windows.Forms.MessageBox]::Show("Erreur: $($_.Exception.Message)", "Erreur", 'OK', 'Error')
+        $lblStatus.Text = "Error during creation"
+        [Windows.Forms.MessageBox]::Show("Error: $($_.Exception.Message)", "Error", 'OK', 'Error')
     }
 })
 
-# --- Événement du bouton Annuler ---
+# --- Cancel Button Event ---
 $btnCancel.Add_Click({ $form.Close() })
 
-# Afficher le formulaire
+# Display the form
 $form.ShowDialog()
