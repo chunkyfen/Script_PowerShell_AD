@@ -76,15 +76,13 @@ $lblUserNameTitle = New-Object Windows.Forms.Label -Property @{
 }
 $grpResult.Controls.Add($lblUserNameTitle)
 
-$lblUserName = New-Object Windows.Forms.Label -Property @{
+$lblUserName = New-Object Windows.Forms.TextBox -Property @{
     Text=""
     ForeColor='Red'
     Font=(New-Object Drawing.Font("Arial",11,[Drawing.FontStyle]::Bold))
     Location='130,28'
-    Size='250,25'
-    BorderStyle='FixedSingle'
+    Width=250
     BackColor='White'
-    TextAlign='MiddleLeft'
 }
 $grpResult.Controls.Add($lblUserName)
 
@@ -192,23 +190,80 @@ $btnSave.Add_Click({
     }
     
     try {
-        $userExists = Get-ADUser -Filter "SamAccountName -eq '$username'" -ErrorAction SilentlyContinue
+        $checkUsername = $username
+        $userExists = Get-ADUser -Filter "SamAccountName -eq '$checkUsername'" -ErrorAction SilentlyContinue
+        
         if ($userExists) {
             $counter = 2
-            $originalUsername = $username -replace '\d+$', ''
-            $newUsername = "$originalUsername$counter"
+            $baseUsername = $username -replace '\d+
+    
+    $securePass = ConvertTo-SecureString $password -AsPlainText -Force
+    $dateNaissance = "$annee-$mois-$jour"
+    
+    try {
+        $ouPath = "OU=Structure,DC=script,DC=local"
+        
+        $newUserParams = @{
+            Name = "$prenom $nom"
+            GivenName = $prenom
+            Surname = $nom
+            SamAccountName = $username
+            UserPrincipalName = "$username@script.local"
+            AccountPassword = $securePass
+            Enabled = $true
+            Path = $ouPath
+            Description = "Date of birth: $dateNaissance - Group: $groupName"
+            ChangePasswordAtLogon = $false
+        }
+        
+        New-ADUser @newUserParams -ErrorAction Stop
+        Start-Sleep -Seconds 2
+        
+        try {
+            Add-ADGroupMember -Identity $groupName -Members $username -ErrorAction Stop
+            $groupStatus = "and added to group $groupName"
+        } catch {
+            $groupStatus = "but failed to add to group"
+            Write-Host "Warning: Failed to add to group" -ForegroundColor Yellow
+        }
+        
+        $txtNom.Clear()
+        $txtPrenom.Clear()
+        $cbJour.SelectedIndex = -1
+        $cbMois.SelectedIndex = -1
+        $cbAnnee.SelectedIndex = -1
+        $cbGrp.SelectedIndex = -1
+        $lblUserName.Text = ""
+        $lblPassword.Text = ""
+        
+        $lblStatus.ForeColor = 'Green'
+        $lblStatus.Text = "User created successfully!"
+        
+        [Windows.Forms.MessageBox]::Show("User $username created successfully $groupStatus!", "Success", 'OK', 'Information')
+    }
+    catch {
+        $lblStatus.ForeColor = 'Red'
+        $lblStatus.Text = "Error during creation"
+        [Windows.Forms.MessageBox]::Show("Error: " + $_.Exception.Message, "Error", 'OK', 'Error')
+    }
+})
+
+$btnCancel.Add_Click({ $form.Close() })
+
+$form.ShowDialog(), ''
             
-            while (Get-ADUser -Filter "SamAccountName -eq '$newUsername'" -ErrorAction SilentlyContinue) {
+            while (Get-ADUser -Filter "SamAccountName -eq '$baseUsername$counter'" -ErrorAction SilentlyContinue) {
                 $counter++
-                $newUsername = "$originalUsername$counter"
             }
             
-            $username = $newUsername
-            $lblUserName.Text = $username
+            $newUsername = "$baseUsername$counter"
             
-            $dialogResult = [Windows.Forms.MessageBox]::Show("User already exists! Use username '$username' instead?", "Username Conflict", 'YesNo', 'Question')
+            $dialogResult = [Windows.Forms.MessageBox]::Show("User '$checkUsername' already exists! Use username '$newUsername' instead?", "Username Conflict", 'YesNo', 'Question')
             
-            if ($dialogResult -eq 'No') {
+            if ($dialogResult -eq 'Yes') {
+                $username = $newUsername
+                $lblUserName.Text = $username
+            } else {
                 return
             }
         }
