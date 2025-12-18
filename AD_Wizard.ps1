@@ -154,21 +154,27 @@ $btnGenerate.Add_Click({
     
     # Validation
     if ([string]::IsNullOrWhiteSpace($nom) -or [string]::IsNullOrWhiteSpace($prenom)) {
-        [Windows.Forms.MessageBox]::Show("Nom et prenom requis!", "Erreur", 'OK', 'Error')
+        [Windows.Forms.MessageBox]::Show("Nom et prénom requis!", "Erreur", 'OK', 'Error')
         return
     }
     
     if ($null -eq $annee) {
-        [Windows.Forms.MessageBox]::Show("Annee de naissance requise!", "Erreur", 'OK', 'Error')
+        [Windows.Forms.MessageBox]::Show("Année de naissance requise!", "Erreur", 'OK', 'Error')
         return
     }
     
     # Génération du User Name: première lettre du prénom + nom
-    $username = ($prenom.Substring(0,1).ToLower() + $nom.ToLower())
+    # Enlever les accents pour le username
+    $prenomClean = $prenom
+    $prenomClean = $prenomClean -replace '[àâäã]','a' -replace '[éèêë]','e' -replace '[îï]','i' -replace '[ôö]','o' -replace '[ùûü]','u' -replace '[ç]','c'
+    $nomClean = $nom
+    $nomClean = $nomClean -replace '[àâäã]','a' -replace '[éèêë]','e' -replace '[îï]','i' -replace '[ôö]','o' -replace '[ùûü]','u' -replace '[ç]','c'
+    
+    $username = ($prenomClean.Substring(0,1).ToLower() + $nomClean.ToLower())
     $username = $username -replace '[^a-z0-9]', ''
     
     # Génération du Password: nom + année + ?
-    $password = ($nom.ToLower() + $annee + "?")
+    $password = ($nomClean.ToLower() + $annee + "?")
     
     # Affichage
     $lblUserName.Text = $username
@@ -189,7 +195,7 @@ $btnSave.Add_Click({
     
     # Validation complète
     if ([string]::IsNullOrWhiteSpace($nom) -or [string]::IsNullOrWhiteSpace($prenom)) {
-        [Windows.Forms.MessageBox]::Show("Nom et prenom requis!", "Erreur", 'OK', 'Error')
+        [Windows.Forms.MessageBox]::Show("Nom et prénom requis!", "Erreur", 'OK', 'Error')
         return
     }
     
@@ -199,12 +205,12 @@ $btnSave.Add_Click({
     }
     
     if ($null -eq $jour -or $null -eq $mois -or $null -eq $annee) {
-        [Windows.Forms.MessageBox]::Show("Date de naissance complete requise!", "Erreur", 'OK', 'Error')
+        [Windows.Forms.MessageBox]::Show("Date de naissance complète requise!", "Erreur", 'OK', 'Error')
         return
     }
     
     if ([string]::IsNullOrWhiteSpace($username) -or [string]::IsNullOrWhiteSpace($password)) {
-        [Windows.Forms.MessageBox]::Show("Veuillez d'abord generer le User Name et Password!", "Erreur", 'OK', 'Error')
+        [Windows.Forms.MessageBox]::Show("Veuillez d'abord générer le User Name et Password!", "Erreur", 'OK', 'Error')
         return
     }
     
@@ -269,13 +275,13 @@ $btnSave.Add_Click({
         $lblPassword.Text = ""
         
         $lblStatus.ForeColor = 'Green'
-        $lblStatus.Text = "Utilisateur cree avec succes!"
+        $lblStatus.Text = "Utilisateur créé avec succès!"
         
-        [Windows.Forms.MessageBox]::Show("Utilisateur $username cree avec succes dans le groupe $groupName!", "Succes", 'OK', 'Information')
+        [Windows.Forms.MessageBox]::Show("Utilisateur $username créé avec succès dans le groupe $groupName!", "Succès", 'OK', 'Information')
     }
     catch {
         $lblStatus.ForeColor = 'Red'
-        $lblStatus.Text = "Erreur lors de la creation"
+        $lblStatus.Text = "Erreur lors de la création"
         [Windows.Forms.MessageBox]::Show("Erreur: $($_.Exception.Message)", "Erreur", 'OK', 'Error')
     }
 })
