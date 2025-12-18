@@ -1,90 +1,97 @@
-Add-Type -AssemblyName System.Windows.Forms   # Charge la librairie Windows Forms (nécessaire pour créer une interface graphique)
-Add-Type -AssemblyName System.Drawing         # Charge la librairie pour gérer les polices, couleurs et styles
-Import-Module ActiveDirectory                 # Charge le module Active Directory pour utiliser les cmdlets AD (New-ADUser, Add-ADGroupMember)
+Add-Type -AssemblyName System.Windows.Forms   # Charge la librairie Windows Forms
+Add-Type -AssemblyName System.Drawing         # Charge la librairie pour polices et couleurs
+Import-Module ActiveDirectory                 # Charge le module Active Directory
 
-$form = New-Object Windows.Forms.Form         # Crée une nouvelle fenêtre graphique
-$form.Text = "nouvel employé"                 # Définit le titre affiché en haut de la fenêtre
-$form.Size = '400,450'                        # Définit la taille de la fenêtre (largeur x hauteur en pixels)
+$form = New-Object Windows.Forms.Form
+$form.Text = "Nouvel employe"                 # Titre de la fenetre
+$form.Size = '400,480'                        # Taille de la fenetre
 
 # --- OU principale ---
-$lblOU = New-Object Windows.Forms.Label -Property @{Text="OU";Location='10,20'}   # Crée un label "OU" placé à la position (10,20)
-$form.Controls.Add($lblOU)                                                        # Ajoute ce label à la fenêtre
+$lblOU = New-Object Windows.Forms.Label -Property @{Text="OU";Location='10,20'}
+$form.Controls.Add($lblOU)
 
-$cbOU = New-Object Windows.Forms.ComboBox -Property @{Location='120,20';Width=250} # Crée une liste déroulante (ComboBox) pour choisir une OU
-(Get-ADOrganizationalUnit -Filter *).DistinguishedName | ForEach-Object { $cbOU.Items.Add($_) } # Remplit la liste avec toutes les OU existantes dans AD
-$form.Controls.Add($cbOU)                                                         # Ajoute la liste déroulante à la fenêtre
+$cbOU = New-Object Windows.Forms.ComboBox -Property @{Location='120,20';Width=250}
+(Get-ADOrganizationalUnit -Filter *).DistinguishedName | ForEach-Object { $cbOU.Items.Add($_) }
+$form.Controls.Add($cbOU)
 
 # --- Groupe ---
-$lblGrp = New-Object Windows.Forms.Label -Property @{Text="Groupe";Location='10,60'} # Crée un label "Groupe"
-$form.Controls.Add($lblGrp)                                                         # Ajoute ce label à la fenêtre
+$lblGrp = New-Object Windows.Forms.Label -Property @{Text="Groupe";Location='10,60'}
+$form.Controls.Add($lblGrp)
 
-$cbGrp = New-Object Windows.Forms.ComboBox -Property @{Location='120,60';Width=250} # Crée une liste déroulante pour choisir un groupe
-(Get-ADGroup -Filter *).Name | ForEach-Object { $cbGrp.Items.Add($_) }              # Remplit la liste avec tous les groupes existants dans AD
-$form.Controls.Add($cbGrp)                                                          # Ajoute la liste déroulante à la fenêtre
+$cbGrp = New-Object Windows.Forms.ComboBox -Property @{Location='120,60';Width=250}
+(Get-ADGroup -Filter *).Name | ForEach-Object { $cbGrp.Items.Add($_) }
+$form.Controls.Add($cbGrp)
 
 # --- Champs utilisateur ---
-$txtNom = New-Object Windows.Forms.TextBox -Property @{Location='120,100'}         # Zone de texte pour saisir le Nom
-$form.Controls.Add((New-Object Windows.Forms.Label -Property @{Text="Nom";Location='10,100'})) # Label "Nom"
-$form.Controls.Add($txtNom)                                                        # Ajoute la zone de texte à la fenêtre
+$txtNom = New-Object Windows.Forms.TextBox -Property @{Location='120,100'}
+$form.Controls.Add((New-Object Windows.Forms.Label -Property @{Text="Nom";Location='10,100'}))
+$form.Controls.Add($txtNom)
 
-$txtPrenom = New-Object Windows.Forms.TextBox -Property @{Location='120,140'}      # Zone de texte pour saisir le Prénom
-$form.Controls.Add((New-Object Windows.Forms.Label -Property @{Text="Prénom";Location='10,140'})) # Label "Prénom"
-$form.Controls.Add($txtPrenom)                                                     # Ajoute la zone de texte
+$txtPrenom = New-Object Windows.Forms.TextBox -Property @{Location='120,140'}
+$form.Controls.Add((New-Object Windows.Forms.Label -Property @{Text="Prenom";Location='10,140'}))
+$form.Controls.Add($txtPrenom)
 
-$cbJour = New-Object Windows.Forms.ComboBox -Property @{Location='120,180'}        # Liste déroulante pour choisir le Jour
-1..31 | ForEach-Object { $cbJour.Items.Add($_.ToString("00")) }                    # Remplit la liste avec les jours de 01 à 31
-$form.Controls.Add((New-Object Windows.Forms.Label -Property @{Text="Jour";Location='10,180'})) # Label "Jour"
-$form.Controls.Add($cbJour)                                                        # Ajoute la liste déroulante
+# --- Bloc Date de naissance ---
+$lblDate = New-Object Windows.Forms.Label -Property @{Text="Date de naissance";Location='10,180'}
+$form.Controls.Add($lblDate)
 
-$cbMois = New-Object Windows.Forms.ComboBox -Property @{Location='120,220'}        # Liste déroulante pour choisir le Mois
-1..12 | ForEach-Object { $cbMois.Items.Add($_.ToString("00")) }                    # Remplit la liste avec les mois de 01 à 12
-$form.Controls.Add((New-Object Windows.Forms.Label -Property @{Text="Mois";Location='10,220'})) # Label "Mois"
-$form.Controls.Add($cbMois)                                                        # Ajoute la liste déroulante
+$cbJour = New-Object Windows.Forms.ComboBox -Property @{Location='120,200'}
+1..31 | ForEach-Object { $cbJour.Items.Add($_.ToString("00")) }
+$form.Controls.Add((New-Object Windows.Forms.Label -Property @{Text="Jour";Location='10,200'}))
+$form.Controls.Add($cbJour)
 
-$cbAnnee = New-Object Windows.Forms.ComboBox -Property @{Location='120,260'}       # Liste déroulante pour choisir l’Année
-1980..2005 | ForEach-Object { $cbAnnee.Items.Add($_) }                             # Remplit la liste avec les années de 1980 à 2005
-$form.Controls.Add((New-Object Windows.Forms.Label -Property @{Text="Année";Location='10,260'})) # Label "Année"
-$form.Controls.Add($cbAnnee)                                                       # Ajoute la liste déroulante
+$cbMois = New-Object Windows.Forms.ComboBox -Property @{Location='120,240'}
+1..12 | ForEach-Object { $cbMois.Items.Add($_.ToString("00")) }
+$form.Controls.Add((New-Object Windows.Forms.Label -Property @{Text="Mois";Location='10,240'}))
+$form.Controls.Add($cbMois)
 
-# --- Résultat ---
-$lblResult = New-Object Windows.Forms.Label -Property @{                           # Crée un label pour afficher UserName et Password
-    ForeColor='Red'; Font=(New-Object Drawing.Font("Arial",10,[Drawing.FontStyle]::Bold)); # Texte rouge et gras
-    Location='10,300'; Size='350,40'                                               # Position et taille du label
+$cbAnnee = New-Object Windows.Forms.ComboBox -Property @{Location='120,280'}
+1910..2010 | ForEach-Object { $cbAnnee.Items.Add($_) }
+$form.Controls.Add((New-Object Windows.Forms.Label -Property @{Text="Annee";Location='10,280'}))
+$form.Controls.Add($cbAnnee)
+
+# --- Resultat ---
+$lblResult = New-Object Windows.Forms.Label -Property @{
+    ForeColor='Red'; Font=(New-Object Drawing.Font("Arial",10,[Drawing.FontStyle]::Bold));
+    Location='10,320'; Size='350,40'
 }
-$form.Controls.Add($lblResult)                                                     # Ajoute le label à la fenêtre
+$form.Controls.Add($lblResult)
 
 # --- Boutons ---
-$btnGen = New-Object Windows.Forms.Button -Property @{Text="Générer";Location='10,360'} # Bouton "Générer"
-$btnGen.Add_Click({                                                                # Action exécutée quand on clique sur le bouton
-    if ($txtNom.Text -and $txtPrenom.Text -and $cbAnnee.SelectedItem) {            # Vérifie que Nom, Prénom et Année sont remplis
-        $u = ($txtPrenom.Text.Substring(0,1).ToLower() + $txtNom.Text.ToLower())   # Génère UserName = 1ère lettre du prénom + nom
-        $p = ($txtNom.Text.ToLower() + $cbAnnee.SelectedItem + "?")                # Génère Password = nom + année + ?
-        $lblResult.Text = "UserName: $u `nPassword: $p"                            # Affiche UserName et Password dans le label résultat
+$btnGen = New-Object Windows.Forms.Button -Property @{Text="Generer";Location='10,370'}
+$btnGen.Add_Click({
+    if ($txtNom.Text -and $txtPrenom.Text -and $cbAnnee.SelectedItem) {
+        $u = ($txtPrenom.Text.Substring(0,1).ToLower() + $txtNom.Text.ToLower())
+        $p = ($txtNom.Text.ToLower() + $cbAnnee.SelectedItem + "?")
+        $lblResult.Text = "UserName: $u `nPassword: $p"
     }
 })
-$form.Controls.Add($btnGen)                                                        # Ajoute le bouton "Générer" à la fenêtre
+$form.Controls.Add($btnGen)
 
-$btnSave = New-Object Windows.Forms.Button -Property @{Text="Enregistrer";Location='120,360'} # Bouton "Enregistrer"
-$btnSave.Add_Click({                                                               # Action exécutée quand on clique sur le bouton
-    $nom = $txtNom.Text; $prenom = $txtPrenom.Text; $annee = $cbAnnee.SelectedItem # Récupère les valeurs saisies
-    $username = ($prenom.Substring(0,1).ToLower() + $nom.ToLower())                # Génère UserName
-    $password = ($nom.ToLower() + $annee + "?")                                    # Génère Password
-    $securePass = ConvertTo-SecureString $password -AsPlainText -Force             # Convertit le mot de passe en SecureString (obligatoire pour AD)
+$btnSave = New-Object Windows.Forms.Button -Property @{Text="Enregistrer";Location='120,370'}
+$btnSave.Add_Click({
+    $nom = $txtNom.Text
+    $prenom = $txtPrenom.Text
+    $annee = $cbAnnee.SelectedItem
+    $username = ($prenom.Substring(0,1).ToLower() + $nom.ToLower())
+    $password = ($nom.ToLower() + $annee + "?")
+    $securePass = ConvertTo-SecureString $password -AsPlainText -Force
 
-    # Crée l’utilisateur dans Active Directory
+    # Creation utilisateur AD (une seule ligne)
     New-ADUser -Name "$prenom $nom" -SamAccountName $username -UserPrincipalName "$username@script.local" -AccountPassword $securePass -Enabled $true -Path $cbOU.SelectedItem
 
+    # Ajout au groupe
+    Add-ADGroupMember -Identity $cbGrp.SelectedItem -Members $username
 
-    Add-ADGroupMember -Identity $cbGrp.SelectedItem -Members $username             # Ajoute l’utilisateur au groupe sélectionné
-
-    $txtNom.Clear(); $txtPrenom.Clear()                                            # Vide les champs Nom et Prénom
-    $cbJour.SelectedIndex=$cbMois.SelectedIndex=$cbAnnee.SelectedIndex=$cbGrp.SelectedIndex=$cbOU.SelectedIndex=-1 # Réinitialise les listes déroulantes
-    $lblResult.Text="Utilisateur $username créé"                                   # Affiche un message de confirmation
+    # Reset
+    $txtNom.Clear(); $txtPrenom.Clear()
+    $cbJour.SelectedIndex=$cbMois.SelectedIndex=$cbAnnee.SelectedIndex=$cbGrp.SelectedIndex=$cbOU.SelectedIndex=-1
+    $lblResult.Text="Utilisateur $username cree"
 })
-$form.Controls.Add($btnSave)                                                       # Ajoute le bouton "Enregistrer" à la fenêtre
+$form.Controls.Add($btnSave)
 
-$btnCancel = New-Object Windows.Forms.Button -Property @{Text="Annuler";Location='230,360'} # Bouton "Annuler"
-$btnCancel.Add_Click({ $form.Close() })                                            # Ferme la fenêtre quand on clique sur "Annuler"
-$form.Controls.Add($btnCancel)                                                     # Ajoute le bouton "Annuler" à la fenêtre
+$btnCancel = New-Object Windows.Forms.Button -Property @{Text="Annuler";Location='230,370'}
+$btnCancel.Add_Click({ $form.Close() })
+$form.Controls.Add($btnCancel)
 
-$form.ShowDialog()                                                                 # Affiche la fenêtre et attend l’interaction de l’utilisateur
+$form.ShowDialog()
