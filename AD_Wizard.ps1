@@ -236,9 +236,9 @@ $btnSave.Add_Click({
     $dateNaissance = "$annee-$mois-$jour"
     
     try {
-        # Get the Infrastructure OU path
+        # Get the Structure OU path
         $domainDN = (Get-ADDomain).DistinguishedName
-        $ouPath = "OU=Infrastructure,$domainDN"
+        $ouPath = "OU=Structure,$domainDN"
         
         # Create AD user
         $newUserParams = @{
@@ -257,7 +257,7 @@ $btnSave.Add_Click({
         New-ADUser @newUserParams -ErrorAction Stop
         Start-Sleep -Seconds 1
         
-        # Add to group (groups are in the Infrastructure OU)
+        # Add to group (groups are in the Structure OU)
         try {
             Add-ADGroupMember -Identity $groupName -Members $username -ErrorAction Stop
         } catch {
