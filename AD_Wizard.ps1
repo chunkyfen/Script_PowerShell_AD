@@ -214,17 +214,97 @@ $btnSave.Add_Click({
         return
     }
     
-    # Check if user already exists
+    # Check if user already exists (only if not already checked)
     try {
         $userExists = Get-ADUser -Filter "SamAccountName -eq '$username'" -ErrorAction SilentlyContinue
         if ($userExists) {
+            # Generate a new unique username
             $counter = 2
-            $originalUsername = $username
-            while (Get-ADUser -Filter "SamAccountName -eq '$username'" -ErrorAction SilentlyContinue) {
-                $username = "$originalUsername$counter"
+            $originalUsername = $username -replace '\d+
+    
+    $securePass = ConvertTo-SecureString $password -AsPlainText -Force
+    $dateNaissance = "$annee-$mois-$jour"
+    
+    try {
+        # Use the Structure OU path
+        $ouPath = "OU=Structure,DC=script,DC=local"
+        
+        # Create AD user
+        $newUserParams = @{
+            Name = "$prenom $nom"
+            GivenName = $prenom
+            Surname = $nom
+            SamAccountName = $username
+            UserPrincipalName = "$username@script.local"
+            AccountPassword = $securePass
+            Enabled = $true
+            Path = $ouPath
+            Description = "Date of birth: $dateNaissance - Group: $groupName"
+            ChangePasswordAtLogon = $false
+        }
+        
+        New-ADUser @newUserParams -ErrorAction Stop
+        
+        # Wait a moment for AD replication
+        Start-Sleep -Seconds 2
+        
+        # Add to group
+        try {
+            Add-ADGroupMember -Identity $groupName -Members $username -ErrorAction Stop
+            $groupStatus = "and added to group $groupName"
+        } catch {
+            $groupStatus = "but failed to add to group: $($_.Exception.Message)"
+            Write-Host "Warning: $groupStatus" -ForegroundColor Yellow
+        }
+        
+        # RESET: Reset all fields to initial state
+        $txtNom.Clear()
+        $txtPrenom.Clear()
+        $cbJour.SelectedIndex = -1
+        $cbMois.SelectedIndex = -1
+        $cbAnnee.SelectedIndex = -1
+        $cbGrp.SelectedIndex = -1
+        $lblUserName.Text = ""
+        $lblPassword.Text = ""
+        
+        $lblStatus.ForeColor = 'Green'
+        $lblStatus.Text = "User created successfully!"
+        
+        [Windows.Forms.MessageBox]::Show("User $username created successfully $groupStatus!", "Success", 'OK', 'Information')
+    }
+    catch {
+        $lblStatus.ForeColor = 'Red'
+        $lblStatus.Text = "Error during creation"
+        [Windows.Forms.MessageBox]::Show("Error: $($_.Exception.Message)", "Error", 'OK', 'Error')
+    }
+})
+
+# --- Cancel Button Event ---
+$btnCancel.Add_Click({ $form.Close() })
+
+# Display the form
+$form.ShowDialog(), ''  # Remove any existing number
+            $newUsername = "$originalUsername$counter"
+            
+            while (Get-ADUser -Filter "SamAccountName -eq '$newUsername'" -ErrorAction SilentlyContinue) {
                 $counter++
+                $newUsername = "$originalUsername$counter"
             }
-            $lblUserName.Text = $username
+            
+            $username = $newUsername
+            $lblUserName.Text = $username  # Update display
+            
+            # Ask user if they want to continue with the new username
+            $result = [Windows.Forms.MessageBox]::Show(
+                "User already exists! Use username '$username' instead?",
+                "Username Conflict",
+                'YesNo',
+                'Question'
+            )
+            
+            if ($result -eq 'No') {
+                return
+            }
         }
     } catch {
         $lblStatus.ForeColor = 'Red'
