@@ -1,15 +1,14 @@
-Add-Type -AssemblyName System.Windows.Forms   # Charge la librairie Windows Forms
-Add-Type -AssemblyName System.Drawing         # Charge la librairie pour polices et couleurs
-Import-Module ActiveDirectory                 # Charge le module Active Directory
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+Import-Module ActiveDirectory
 
 $form = New-Object Windows.Forms.Form
-$form.Text = "Nouvel employe"                 # Titre de la fenetre
-$form.Size = '400,480'                        # Taille de la fenetre
+$form.Text = "Nouvel employe"
+$form.Size = '400,480'
 
 # --- OU principale ---
 $lblOU = New-Object Windows.Forms.Label -Property @{Text="OU";Location='10,20'}
 $form.Controls.Add($lblOU)
-
 $cbOU = New-Object Windows.Forms.ComboBox -Property @{Location='120,20';Width=250}
 (Get-ADOrganizationalUnit -Filter *).DistinguishedName | ForEach-Object { $cbOU.Items.Add($_) }
 $form.Controls.Add($cbOU)
@@ -17,7 +16,6 @@ $form.Controls.Add($cbOU)
 # --- Groupe ---
 $lblGrp = New-Object Windows.Forms.Label -Property @{Text="Groupe";Location='10,60'}
 $form.Controls.Add($lblGrp)
-
 $cbGrp = New-Object Windows.Forms.ComboBox -Property @{Location='120,60';Width=250}
 (Get-ADGroup -Filter *).Name | ForEach-Object { $cbGrp.Items.Add($_) }
 $form.Controls.Add($cbGrp)
@@ -58,35 +56,83 @@ $lblResult = New-Object Windows.Forms.Label -Property @{
 $form.Controls.Add($lblResult)
 
 # --- Boutons ---
-$btnGen = New-Object Windows.Forms.Button -Property @{Text="Generer";Location='10,370'}
-$btnGen.Add_Click({
-    if ($txtNom.Text -and $txtPrenom.Text -and $cbAnnee.SelectedItem) {
-        $u = ($txtPrenom.Text.Substring(0,1).ToLower() + $txtNom.Text.ToLower())
-        $p = ($txtNom.Text.ToLower() + $cbAnnee.SelectedItem + "?")
-        $lblResult.Text = "UserName: $u `nPassword: $p"
-    }
-})
-$form.Controls.Add($btnGen)
-
 $btnSave = New-Object Windows.Forms.Button -Property @{Text="Enregistrer";Location='120,370'}
 $btnSave.Add_Click({
-    $nom = $txtNom.Text
-    $prenom = $txtPrenom.Text
+    $nom = $txtNom.Text.Trim()
+    $prenom = $txtPrenom.Text.Trim()
+    $jour = $cbJour.SelectedItem
+    $mois = $cbMois.SelectedItem
     $annee = $cbAnnee.SelectedItem
+    
+    # Validation des champs requis
+    if ([string]::IsNullOrWhiteSpace($nom) -or [string]::IsNullOrWhiteSpace($prenom)) {
+        $lblResult.Text = "Nom et prenom requis!"
+        return
+    }
+    
+    if ($null -eq $cbOU.SelectedItem -or $null -eq $cbGrp.SelectedItem) {
+        $lblResult.Text = "OU et Groupe requis!"
+        return
+    }
+    
+    if ($null -eq $jour -or $null -eq $mois -or $null -eq $annee) {
+        $lblResult.Text = "Date de naissance complete requise!"
+        return
+    }
+    
+    # Génération du nom d'utilisateur
     $username = ($prenom.Substring(0,1).ToLower() + $nom.ToLower())
+    
+    # Vérifier si l'utilisateur existe déjà
+    $userExists = Get-ADUser -Filter "SamAccountName -eq '$username'" -ErrorAction SilentlyContinue
+    if ($userExists) {
+        # Ajouter un numéro si l'utilisateur existe
+        $counter = 2
+        $originalUsername = $username
+        while (Get-ADUser -Filter "SamAccountName -eq '$username'" -ErrorAction SilentlyContinue) {
+            $username = "$originalUsername$counter"
+            $counter++
+        }
+    }
+    
+    # Génération du mot de passe
     $password = ($nom.ToLower() + $annee + "?")
     $securePass = ConvertTo-SecureString $password -AsPlainText -Force
-
-    # Creation utilisateur AD (une seule ligne)
-    New-ADUser -Name "$prenom $nom" -SamAccountName $username -UserPrincipalName "$username@script.local" -AccountPassword $securePass -Enabled $true -Path $cbOU.SelectedItem
-
-    # Ajout au groupe
-    Add-ADGroupMember -Identity $cbGrp.SelectedItem -Members $username
-
-    # Reset
-    $txtNom.Clear(); $txtPrenom.Clear()
-    $cbJour.SelectedIndex=$cbMois.SelectedIndex=$cbAnnee.SelectedIndex=$cbGrp.SelectedIndex=$cbOU.SelectedIndex=-1
-    $lblResult.Text="Utilisateur $username cree"
+    
+    # Date de naissance formatée
+    $dateNaissance = "$annee-$mois-$jour"
+    
+    try {
+        # Création utilisateur AD avec login et mot de passe
+        New-ADUser -Name "$prenom $nom" `
+                   -GivenName $prenom `
+                   -Surname $nom `
+                   -SamAccountName $username `
+                   -UserPrincipalName "$username@script.local" `
+                   -AccountPassword $securePass `
+                   -Enabled $true `
+                   -Path $cbOU.SelectedItem `
+                   -Description "Date de naissance: $dateNaissance"
+        
+        # Ajout au groupe
+        Add-ADGroupMember -Identity $cbGrp.SelectedItem -Members $username
+        
+        # Reset
+        $txtNom.Clear()
+        $txtPrenom.Clear()
+        $cbJour.SelectedIndex = -1
+        $cbMois.SelectedIndex = -1
+        $cbAnnee.SelectedIndex = -1
+        $cbGrp.SelectedIndex = -1
+        $cbOU.SelectedIndex = -1
+        
+        $lblResult.ForeColor = 'Green'
+        $lblResult.Text = "Utilisateur $username cree avec mot de passe $password"
+    }
+    catch {
+        $lblResult.ForeColor = 'Red'
+        $lblResult.Text = "Erreur: $($_.Exception.Message)"
+    }
 })
 $form.Controls.Add($btnSave)
 
