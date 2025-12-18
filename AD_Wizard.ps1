@@ -71,12 +71,9 @@ $btnSave.Add_Click({                                                            
     $password = ($nom.ToLower() + $annee + "?")                                    # Génère Password
     $securePass = ConvertTo-SecureString $password -AsPlainText -Force             # Convertit le mot de passe en SecureString (obligatoire pour AD)
 
-    New-ADUser -Name "$prenom $nom" `                                              # Crée l’utilisateur dans Active Directory
-               -SamAccountName $username `
-               -UserPrincipalName "$username@script.local" `
-               -AccountPassword $securePass `
-               -Enabled $true `
-               -Path $cbOU.SelectedItem                                            # Place l’utilisateur dans l’OU sélectionnée
+    # Crée l’utilisateur dans Active Directory
+    New-ADUser -Name "$prenom $nom" -SamAccountName $username -UserPrincipalName "$username@script.local" -AccountPassword $securePass -Enabled $true -Path $cbOU.SelectedItem
+
 
     Add-ADGroupMember -Identity $cbGrp.SelectedItem -Members $username             # Ajoute l’utilisateur au groupe sélectionné
 
