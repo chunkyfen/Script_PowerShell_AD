@@ -236,9 +236,8 @@ $btnSave.Add_Click({
     $dateNaissance = "$annee-$mois-$jour"
     
     try {
-        # Get the Structure OU path
-        $domainDN = (Get-ADDomain).DistinguishedName
-        $ouPath = "OU=Structure,$domainDN"
+        # Use the Structure OU path
+        $ouPath = "OU=Structure,DC=script,DC=local"
         
         # Create AD user
         $newUserParams = @{
@@ -255,14 +254,17 @@ $btnSave.Add_Click({
         }
         
         New-ADUser @newUserParams -ErrorAction Stop
-        Start-Sleep -Seconds 1
         
-        # Add to group (groups are in the Structure OU)
+        # Wait a moment for AD replication
+        Start-Sleep -Seconds 2
+        
+        # Add to group
         try {
             Add-ADGroupMember -Identity $groupName -Members $username -ErrorAction Stop
+            $groupStatus = "and added to group $groupName"
         } catch {
-            # If group doesn't exist, continue anyway
-            Write-Host "Warning: Group $groupName not found" -ForegroundColor Yellow
+            $groupStatus = "but failed to add to group: $($_.Exception.Message)"
+            Write-Host "Warning: $groupStatus" -ForegroundColor Yellow
         }
         
         # RESET: Reset all fields to initial state
@@ -278,7 +280,7 @@ $btnSave.Add_Click({
         $lblStatus.ForeColor = 'Green'
         $lblStatus.Text = "User created successfully!"
         
-        [Windows.Forms.MessageBox]::Show("User $username created successfully in group $groupName!", "Success", 'OK', 'Information')
+        [Windows.Forms.MessageBox]::Show("User $username created successfully $groupStatus!", "Success", 'OK', 'Information')
     }
     catch {
         $lblStatus.ForeColor = 'Red'
