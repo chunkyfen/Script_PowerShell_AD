@@ -1,7 +1,3 @@
-I'll help you add pedagogical explanations to this PowerShell script without changing the code or comments. Here's the enhanced version with descriptive paragraphs at each important section:
-
----
-
 # **PowerShell GUI Script for Active Directory User Creation - Educational Documentation**
 
 This document provides detailed explanations of a PowerShell script that creates a graphical user interface for adding new employees to Active Directory. Each section includes the original code with additional educational context to help beginners understand what's happening and why.
