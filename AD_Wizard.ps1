@@ -1,138 +1,103 @@
-Add-Type -AssemblyName System.Windows.Forms
-Add-Type -AssemblyName System.Drawing
+Add-Type -AssemblyName System.Windows.Forms, System.Drawing
 Import-Module ActiveDirectory
 
-$form = New-Object Windows.Forms.Form
-$form.Text = "New Employee"
-$form.Size = '450,580'
-$form.StartPosition = 'CenterScreen'
-$form.FormBorderStyle = 'FixedDialog'
-$form.MaximizeBox = $false
+# Helper function to create controls
+function New-Control($type, $props) {
+    $ctrl = New-Object "System.Windows.Forms.$type"
+    $props.GetEnumerator() | ForEach-Object { $ctrl.$($_.Key) = $_.Value }
+    return $ctrl
+}
 
-$grpInfo = New-Object Windows.Forms.GroupBox
-$grpInfo.Text = "Personal Information"
-$grpInfo.Location = '15,10'
-$grpInfo.Size = '410,180'
+# Main Form
+$form = New-Control Form @{
+    Text = "New Employee"; Size = '450,580'; StartPosition = 'CenterScreen'
+    FormBorderStyle = 'FixedDialog'; MaximizeBox = $false
+}
+
+# Personal Information Group
+$grpInfo = New-Control GroupBox @{Text = "Personal Information"; Location = '15,10'; Size = '410,180'}
 $form.Controls.Add($grpInfo)
 
-$lblNom = New-Object Windows.Forms.Label -Property @{Text="Last Name :";Location='20,30';Size='100,20'}
-$grpInfo.Controls.Add($lblNom)
-$txtNom = New-Object Windows.Forms.TextBox -Property @{Location='130,28';Width=250}
-$grpInfo.Controls.Add($txtNom)
+# Input Controls
+$txtNom = New-Control TextBox @{Location = '130,28'; Width = 250}
+$txtPrenom = New-Control TextBox @{Location = '130,63'; Width = 250}
+$cbGrp = New-Control ComboBox @{Location = '130,98'; Width = 250; DropDownStyle = 'DropDownList'}
+@("Informatique", "comptabilite", "RH") | ForEach-Object { $cbGrp.Items.Add($_) | Out-Null }
 
-$lblPrenom = New-Object Windows.Forms.Label -Property @{Text="First Name :";Location='20,65';Size='100,20'}
-$grpInfo.Controls.Add($lblPrenom)
-$txtPrenom = New-Object Windows.Forms.TextBox -Property @{Location='130,63';Width=250}
-$grpInfo.Controls.Add($txtPrenom)
+$cbJour = New-Control ComboBox @{Location = '130,133'; Width = 60; DropDownStyle = 'DropDownList'}
+$cbMois = New-Control ComboBox @{Location = '205,133'; Width = 60; DropDownStyle = 'DropDownList'}
+$cbAnnee = New-Control ComboBox @{Location = '280,133'; Width = 100; DropDownStyle = 'DropDownList'}
 
-$lblGrp = New-Object Windows.Forms.Label -Property @{Text="Group :";Location='20,100';Size='100,20'}
-$grpInfo.Controls.Add($lblGrp)
-$cbGrp = New-Object Windows.Forms.ComboBox -Property @{Location='130,98';Width=250;DropDownStyle='DropDownList'}
-$cbGrp.Items.Add("Informatique") | Out-Null
-$cbGrp.Items.Add("comptabilite") | Out-Null
-$cbGrp.Items.Add("RH") | Out-Null
-$grpInfo.Controls.Add($cbGrp)
-
-$lblDate = New-Object Windows.Forms.Label -Property @{Text="Date of Birth :";Location='20,135';Size='100,20'}
-$grpInfo.Controls.Add($lblDate)
-
-$cbJour = New-Object Windows.Forms.ComboBox -Property @{Location='130,133';Width=60;DropDownStyle='DropDownList'}
 1..31 | ForEach-Object { $cbJour.Items.Add($_.ToString("00")) | Out-Null }
-$grpInfo.Controls.Add($cbJour)
-
-$lblSlash1 = New-Object Windows.Forms.Label -Property @{Text="/";Location='195,135';Size='10,20'}
-$grpInfo.Controls.Add($lblSlash1)
-
-$cbMois = New-Object Windows.Forms.ComboBox -Property @{Location='205,133';Width=60;DropDownStyle='DropDownList'}
 1..12 | ForEach-Object { $cbMois.Items.Add($_.ToString("00")) | Out-Null }
-$grpInfo.Controls.Add($cbMois)
-
-$lblSlash2 = New-Object Windows.Forms.Label -Property @{Text="/";Location='270,135';Size='10,20'}
-$grpInfo.Controls.Add($lblSlash2)
-
-$cbAnnee = New-Object Windows.Forms.ComboBox -Property @{Location='280,133';Width=100;DropDownStyle='DropDownList'}
 1980..2005 | ForEach-Object { $cbAnnee.Items.Add($_) | Out-Null }
-$grpInfo.Controls.Add($cbAnnee)
 
-$btnGenerate = New-Object Windows.Forms.Button -Property @{
-    Text="Generate User Name && Password"
-    Location='80,210'
-    Width=280
-    Height=35
-    Font=(New-Object Drawing.Font("Arial",10,[Drawing.FontStyle]::Regular))
+# Add labels and controls to group
+$grpInfo.Controls.AddRange(@(
+    (New-Control Label @{Text = "Last Name :"; Location = '20,30'; Size = '100,20'}),
+    $txtNom,
+    (New-Control Label @{Text = "First Name :"; Location = '20,65'; Size = '100,20'}),
+    $txtPrenom,
+    (New-Control Label @{Text = "Group :"; Location = '20,100'; Size = '100,20'}),
+    $cbGrp,
+    (New-Control Label @{Text = "Date of Birth :"; Location = '20,135'; Size = '100,20'}),
+    $cbJour,
+    (New-Control Label @{Text = "/"; Location = '195,135'; Size = '10,20'}),
+    $cbMois,
+    (New-Control Label @{Text = "/"; Location = '270,135'; Size = '10,20'}),
+    $cbAnnee
+))
+
+# Generate Button
+$btnGenerate = New-Control Button @{
+    Text = "Generate User Name && Password"; Location = '80,210'; Size = '280,35'
+    Font = New-Object Drawing.Font("Arial", 10)
 }
 $form.Controls.Add($btnGenerate)
 
-$grpResult = New-Object Windows.Forms.GroupBox
-$grpResult.Text = "Result"
-$grpResult.Location = '15,260'
-$grpResult.Size = '410,150'
+# Result Group
+$grpResult = New-Control GroupBox @{Text = "Result"; Location = '15,260'; Size = '410,150'}
 $form.Controls.Add($grpResult)
 
-$lblUserNameTitle = New-Object Windows.Forms.Label -Property @{
-    Text="User Name :"
-    Location='20,30'
-    Size='100,20'
+$lblUserName = New-Control TextBox @{
+    Location = '130,28'; Width = 250; BackColor = 'White'
+    ForeColor = 'Red'; Font = New-Object Drawing.Font("Arial", 11, [Drawing.FontStyle]::Bold)
 }
-$grpResult.Controls.Add($lblUserNameTitle)
-
-$lblUserName = New-Object Windows.Forms.TextBox -Property @{
-    Text=""
-    ForeColor='Red'
-    Font=(New-Object Drawing.Font("Arial",11,[Drawing.FontStyle]::Bold))
-    Location='130,28'
-    Width=250
-    BackColor='White'
+$lblPassword = New-Control Label @{
+    Location = '130,68'; Size = '250,25'; BackColor = 'White'; BorderStyle = 'FixedSingle'
+    ForeColor = 'Red'; Font = New-Object Drawing.Font("Arial", 11, [Drawing.FontStyle]::Bold)
+    TextAlign = 'MiddleLeft'
 }
-$grpResult.Controls.Add($lblUserName)
-
-$lblPasswordTitle = New-Object Windows.Forms.Label -Property @{
-    Text="Password :"
-    Location='20,70'
-    Size='100,20'
+$lblStatus = New-Control Label @{
+    Location = '20,105'; Size = '370,30'; TextAlign = 'MiddleCenter'
+    ForeColor = 'Green'; Font = New-Object Drawing.Font("Arial", 9, [Drawing.FontStyle]::Bold)
 }
-$grpResult.Controls.Add($lblPasswordTitle)
 
-$lblPassword = New-Object Windows.Forms.Label -Property @{
-    Text=""
-    ForeColor='Red'
-    Font=(New-Object Drawing.Font("Arial",11,[Drawing.FontStyle]::Bold))
-    Location='130,68'
-    Size='250,25'
-    BorderStyle='FixedSingle'
-    BackColor='White'
-    TextAlign='MiddleLeft'
+$grpResult.Controls.AddRange(@(
+    (New-Control Label @{Text = "User Name :"; Location = '20,30'; Size = '100,20'}),
+    $lblUserName,
+    (New-Control Label @{Text = "Password :"; Location = '20,70'; Size = '100,20'}),
+    $lblPassword,
+    $lblStatus
+))
+
+# Action Buttons
+$btnSave = New-Control Button @{
+    Text = "Save"; Location = '100,430'; Size = '120,35'
+    Font = New-Object Drawing.Font("Arial", 10)
 }
-$grpResult.Controls.Add($lblPassword)
-
-$lblStatus = New-Object Windows.Forms.Label -Property @{
-    Text=""
-    ForeColor='Green'
-    Font=(New-Object Drawing.Font("Arial",9,[Drawing.FontStyle]::Bold))
-    Location='20,105'
-    Size='370,30'
-    TextAlign='MiddleCenter'
+$btnCancel = New-Control Button @{
+    Text = "Cancel"; Location = '230,430'; Size = '120,35'
+    Font = New-Object Drawing.Font("Arial", 10)
 }
-$grpResult.Controls.Add($lblStatus)
+$form.Controls.AddRange(@($btnSave, $btnCancel))
 
-$btnSave = New-Object Windows.Forms.Button -Property @{
-    Text="Save"
-    Location='100,430'
-    Width=120
-    Height=35
-    Font=(New-Object Drawing.Font("Arial",10,[Drawing.FontStyle]::Regular))
+# Helper function to clean accents
+function Remove-Accents($text) {
+    $text -replace '[àâäã]','a' -replace '[éèêë]','e' -replace '[îï]','i' -replace '[ôö]','o' -replace '[ùûü]','u' -replace '[ç]','c'
 }
-$form.Controls.Add($btnSave)
 
-$btnCancel = New-Object Windows.Forms.Button -Property @{
-    Text="Cancel"
-    Location='230,430'
-    Width=120
-    Height=35
-    Font=(New-Object Drawing.Font("Arial",10,[Drawing.FontStyle]::Regular))
-}
-$form.Controls.Add($btnCancel)
-
+# Generate Button Click
 $btnGenerate.Add_Click({
     $nom = $txtNom.Text.Trim()
     $prenom = $txtPrenom.Text.Trim()
@@ -148,17 +113,15 @@ $btnGenerate.Add_Click({
         return
     }
     
-    $prenomClean = $prenom -replace '[àâäã]','a' -replace '[éèêë]','e' -replace '[îï]','i' -replace '[ôö]','o' -replace '[ùûü]','u' -replace '[ç]','c'
-    $nomClean = $nom -replace '[àâäã]','a' -replace '[éèêë]','e' -replace '[îï]','i' -replace '[ôö]','o' -replace '[ùûü]','u' -replace '[ç]','c'
+    $prenomClean = Remove-Accents $prenom
+    $nomClean = Remove-Accents $nom
     
-    $username = ($prenomClean.Substring(0,1).ToLower() + $nomClean.ToLower()) -replace '[^a-z0-9]', ''
-    $password = ($nomClean.ToLower() + $annee + "?")
-    
-    $lblUserName.Text = $username
-    $lblPassword.Text = $password
+    $lblUserName.Text = ($prenomClean[0].ToString().ToLower() + $nomClean.ToLower()) -replace '[^a-z0-9]', ''
+    $lblPassword.Text = $nomClean.ToLower() + $annee + "?"
     $lblStatus.Text = ""
 })
 
+# Save Button Click
 $btnSave.Add_Click({
     $nom = $txtNom.Text.Trim()
     $prenom = $txtPrenom.Text.Trim()
@@ -169,30 +132,27 @@ $btnSave.Add_Click({
     $username = $lblUserName.Text.Trim()
     $password = $lblPassword.Text
     
+    # Validation
     if ([string]::IsNullOrWhiteSpace($nom) -or [string]::IsNullOrWhiteSpace($prenom)) {
         [Windows.Forms.MessageBox]::Show("Last name and first name are required!", "Error", 'OK', 'Error')
         return
     }
-    
     if ($null -eq $groupName) {
         [Windows.Forms.MessageBox]::Show("Group is required!", "Error", 'OK', 'Error')
         return
     }
-    
     if ($null -eq $jour -or $null -eq $mois -or $null -eq $annee) {
         [Windows.Forms.MessageBox]::Show("Complete date of birth is required!", "Error", 'OK', 'Error')
         return
     }
-    
     if ([string]::IsNullOrWhiteSpace($username) -or [string]::IsNullOrWhiteSpace($password)) {
         [Windows.Forms.MessageBox]::Show("Please generate the User Name and Password first!", "Error", 'OK', 'Error')
         return
     }
     
+    # Check if user exists
     try {
-        $userExists = Get-ADUser -Filter "SamAccountName -eq '$username'" -ErrorAction SilentlyContinue
-        
-        if ($userExists) {
+        if (Get-ADUser -Filter "SamAccountName -eq '$username'" -ErrorAction SilentlyContinue) {
             [Windows.Forms.MessageBox]::Show("Username '$username' already exists! Please use a different name.", "Error", 'OK', 'Error')
             return
         }
@@ -202,48 +162,38 @@ $btnSave.Add_Click({
         return
     }
     
-    $securePass = ConvertTo-SecureString $password -AsPlainText -Force
-    $dateNaissance = "$annee-$mois-$jour"
-    
+    # Create user
     try {
-        $ouPath = "OU=Structure,DC=script,DC=local"
-        
         $newUserParams = @{
             Name = "$prenom $nom"
             GivenName = $prenom
             Surname = $nom
             SamAccountName = $username
             UserPrincipalName = "$username@script.local"
-            AccountPassword = $securePass
+            AccountPassword = (ConvertTo-SecureString $password -AsPlainText -Force)
             Enabled = $true
-            Path = $ouPath
-            Description = "Date of birth: $dateNaissance - Group: $groupName"
+            Path = "OU=Structure,DC=script,DC=local"
+            Description = "Date of birth: $annee-$mois-$jour - Group: $groupName"
             ChangePasswordAtLogon = $false
         }
         
         New-ADUser @newUserParams -ErrorAction Stop
         Start-Sleep -Seconds 2
         
+        $groupStatus = "and added to group $groupName"
         try {
             Add-ADGroupMember -Identity $groupName -Members $username -ErrorAction Stop
-            $groupStatus = "and added to group $groupName"
         } catch {
             $groupStatus = "but failed to add to group"
-            Write-Host "Warning: Failed to add to group" -ForegroundColor Yellow
         }
         
-        $txtNom.Clear()
-        $txtPrenom.Clear()
-        $cbJour.SelectedIndex = -1
-        $cbMois.SelectedIndex = -1
-        $cbAnnee.SelectedIndex = -1
-        $cbGrp.SelectedIndex = -1
-        $lblUserName.Text = ""
-        $lblPassword.Text = ""
+        # Clear form
+        $txtNom.Clear(); $txtPrenom.Clear()
+        $cbJour.SelectedIndex = $cbMois.SelectedIndex = $cbAnnee.SelectedIndex = $cbGrp.SelectedIndex = -1
+        $lblUserName.Text = $lblPassword.Text = ""
         
         $lblStatus.ForeColor = 'Green'
         $lblStatus.Text = "User created successfully!"
-        
         [Windows.Forms.MessageBox]::Show("User $username created successfully $groupStatus!", "Success", 'OK', 'Information')
     }
     catch {
@@ -255,4 +205,4 @@ $btnSave.Add_Click({
 
 $btnCancel.Add_Click({ $form.Close() })
 
-$form.ShowDialog()
+$form.ShowDialog() | Out-Null
